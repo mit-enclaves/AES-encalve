@@ -1,12 +1,16 @@
 #include <api_enclave.h>
+#include "crypto_stream.h"
+
+#define CLEN 16
 
 void enclave_entry() {
-  uint64_t result = 45;
-  result += 10;
+  const unsigned char k[crypto_stream_KEYBYTES];
+  const unsigned char n[crypto_stream_NONCEBYTES];
+  unsigned long long clen;
+  clen = CLEN;
+  unsigned char c[CLEN]; 
 
-  while(1) {
-    result+=10;
-  }
+  crypto_stream(c,clen,n,k);
 
   sm_exit_enclave();
 }
