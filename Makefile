@@ -16,6 +16,7 @@ LDFLAGS := -nostartfiles -nostdlib -static
 API_DIR:=$(ROOT)/api
 ENCLAVE_SRC_DIR:=$(ROOT)/src
 BUILD_DIR:=$(ROOT)/build
+CRYPTO_STREAM:=$(ENCLAVE_SRC_DIR)/crypto_stream
 
 #Targets
 $(BUILD_DIR):
@@ -28,11 +29,19 @@ ALL:=$(ENCLAVE_BIN)
 
 ENCLAVE_INCLUDES := \
 	$(API_DIR) \
-	$(ENCLAVE_SRC_DIR)
+	$(ENCLAVE_SRC_DIR) \
+	$(CRYPTO_STREAM)
 
 ENCLAVE_COMMON_SRC := \
 	$(ENCLAVE_SRC_DIR)/enclave_entry.S \
-  $(ENCLAVE_SRC_DIR)/enclave_code.c \
+	$(ENCLAVE_SRC_DIR)/enclave_code.c \
+	$(CRYPTO_STREAM)/afternm.c \
+	$(CRYPTO_STREAM)/beforenm.c \
+	$(CRYPTO_STREAM)/common.c \
+	$(CRYPTO_STREAM)/consts.c \
+	$(CRYPTO_STREAM)/int128.c \
+	$(CRYPTO_STREAM)/stream.c \
+	$(CRYPTO_STREAM)/xor_afternm.c \
 
 ENCLAVE_LD := $(ENCLAVE_SRC_DIR)/enclave.lds
 
