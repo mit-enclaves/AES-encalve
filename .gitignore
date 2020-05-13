@@ -1,0 +1,9 @@
+# Build Directory
+build
+
+# vim files
+*.swp
+
+# Tmp
+*.tmp
+*.bak
