@@ -2,39 +2,47 @@
 ROOT:=$(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # Define compiler
-CC=riscv64-unknown-elf-gcc
+CC=riscv64-unknown-linux-gnu-gcc
 
-OBJCOPY=riscv64-unknown-elf-objcopy
+OBJCOPY=riscv64-unknown-linux-gnu-objcopy
+
+# Define Directories
+API_DIR=$(ROOT)/../security_monitor/api
+CLIB_DIR=$(ROOT)/../security_monitor/src/clib
+ENCLAVE_SRC_DIR=$(ROOT)/src
+BUILD_DIR=$(ROOT)/build
+
+ENCLAVE_ELF = $(BUILD_DIR)/aes-enclave.elf
+ENCLAVE_BIN = $(BUILD_DIR)/aes-enclave.bin
+
+ALL=$(ENCLAVE_BIN)
+
+all: $(ALL)
+
 
 # Flags
 # -mcmodel=medany is *very* important - it ensures the program addressing is PC-relative. Ensure no global variables are used. To quote from the spec, "the program and its statically defined symbols must lie within any single 2 GiB address range. Addressing for global symbols uses lui/addi instruction pairs, which emit the R_RISCV_PCREL_HI20/R_RISCV_PCREL_LO12_I sequences."
-DEBUG_FLAGS := -ggdb3
-CFLAGS := -march=rv64g -mcmodel=medany -mabi=lp64 -fno-common -std=gnu11 -Wall -O0 $(DEBUG_FLAGS)
-LDFLAGS := -nostartfiles -nostdlib -static
+DEBUG_FLAGS = -ggdb3
+CFLAGS = -march=rv64g -mcmodel=medany -mabi=lp64 -fno-common -std=gnu11 -Wall -O0 $(DEBUG_FLAGS)
+LDFLAGS = -nostartfiles -nostdlib -static
 
-# Define Directories
-API_DIR:=$(ROOT)/api
-ENCLAVE_SRC_DIR:=$(ROOT)/src
-BUILD_DIR:=$(ROOT)/build
-CRYPTO_STREAM:=$(ENCLAVE_SRC_DIR)/crypto_stream
+CRYPTO_STREAM=$(ENCLAVE_SRC_DIR)/crypto_stream
 
 #Targets
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-ENCLAVE_ELF := $(BUILD_DIR)/enclave.elf
-ENCLAVE_BIN := $(BUILD_DIR)/enclave.bin
-
-ALL:=$(ENCLAVE_BIN)
-
-ENCLAVE_INCLUDES := \
+ENCLAVE_INCLUDES = \
 	$(API_DIR) \
+	$(CLIB_DIR) \
 	$(ENCLAVE_SRC_DIR) \
 	$(CRYPTO_STREAM)
 
-ENCLAVE_COMMON_SRC := \
+ENCLAVE_COMMON_SRC = \
 	$(ENCLAVE_SRC_DIR)/enclave_entry.S \
-	$(ENCLAVE_SRC_DIR)/enclave_code.c \
+	$(ENCLAVE_SRC_DIR)/aes-enclave.c \
+	$(ENCLAVE_SRC_DIR)/aes-enclave-key.c \
+	$(CLIB_DIR)/memcpy.c \
 	$(CRYPTO_STREAM)/afternm.c \
 	$(CRYPTO_STREAM)/beforenm.c \
 	$(CRYPTO_STREAM)/common.c \
@@ -43,7 +51,7 @@ ENCLAVE_COMMON_SRC := \
 	$(CRYPTO_STREAM)/stream.c \
 	$(CRYPTO_STREAM)/xor_afternm.c \
 
-ENCLAVE_LD := $(ENCLAVE_SRC_DIR)/enclave.lds
+ENCLAVE_LD = $(ENCLAVE_SRC_DIR)/enclave.lds
 
 $(ENCLAVE_ELF): $(ENCLAVE_COMMON_SRC) $(ENCLAVE_LD) $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(addprefix -I , $(ENCLAVE_INCLUDES)) $(LDFLAGS) -T $(ENCLAVE_LD) $< $(ENCLAVE_COMMON_SRC) -o $@
@@ -53,9 +61,6 @@ $(ENCLAVE_BIN): $(ENCLAVE_ELF)
 
 .PHONY: enclave
 enclave : $(ENCLAVE_BIN)
-
-.PHONY: all
-all: $(ALL)
 
 .PHONY: clean
 clean:
