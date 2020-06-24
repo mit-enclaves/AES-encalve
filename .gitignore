@@ -1,6 +1,7 @@
 # Build Directory
 build
-
+src/aes-enclave-key.c
+*~
 # vim files
 *.swp
 
