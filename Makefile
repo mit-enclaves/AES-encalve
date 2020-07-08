@@ -64,7 +64,7 @@ $(ENCLAVE_BIN): $(ENCLAVE_ELF)
 	@echo OBJCOPY $@
 	@$(OBJCOPY) -O binary --only-section=.text --only-section=.rodata --only-section=.data --only-section=.bss $< $@
 
-$(BUILD_DIR)/aes-main: src/aes-main.c $(BUILD_DIR)/key.txt
+$(BUILD_DIR)/aes-main: src/aes-main.c
 	@echo CC $@
 	@$(CC) -O -g  $(addprefix -I , $(ENCLAVE_INCLUDES)) -std=gnu11 -Wall -Werror -o $@ $<
 
